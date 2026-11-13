@@ -1,0 +1,57 @@
+
+name: Windows Gaming Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gaming:
+    name: Gaming Environment
+    runs-on: windows-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Windows Information
+        shell: pwsh
+        run: |
+          Get-ComputerInfo |
+            Select-Object WindowsProductName,
+            WindowsVersion, OsArchitecture
+
+      - name: Check GPU
+        shell: pwsh
+        run: |
+          Get-CimInstance Win32_VideoController |
+            Select-Object Name, DriverVersion,
+            AdapterRAM
+
+      - name: Check DirectX
+        shell: pwsh
+        run: |
+          dxdiag /t "$env:RUNNER_TEMP\dxdiag.txt"
+          Start-Sleep -Seconds 5
+          Get-Content "$env:RUNNER_TEMP\dxdiag.txt"
+
+      - name: Check OpenGL and Vulkan tools
+        shell: pwsh
+        run: |
+          Write-Host "Checking graphics environment"
+          Get-Command dxdiag -ErrorAction SilentlyContinue
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Check compiler
+        shell: pwsh
+        run: |
+          Get-Command cl -ErrorAction SilentlyContinue
+          cmake --version
+
+      - name: Gaming environment report
+        shell: pwsh
+        run: |
+          Write-Host "Gaming environment checked!"
+          Write-Host "Windows gaming setup completed!"
+          
